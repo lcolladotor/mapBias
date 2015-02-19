@@ -1,0 +1,91 @@
+---
+output:
+  html_document:
+    toc: true
+    theme: united
+  knitrBootstrap::bootstrap_document:
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+---
+
+Select genes
+============
+
+Based on https://github.com/alyssafrazee/polyester_code/blob/master/polyester_manuscript.Rmd
+
+
+
+Select twenty genes (10 previously selected by Alyssa, 10 new at random) and create two GTF files:
+
+* __twenty_genes.gtf__ only has the info for the selected 20 genes
+* __incomplete_genes.gtf__ has the info for all genes expect the 20 selected genes
+
+```{r}
+library('ballgown')
+library('GenomicRanges')
+
+load('../cov.rda')
+
+## High coverage
+expressed <- exprfilter(cov, cutoff=20, meas='cov')
+
+## Map back to annotated transcripts
+# cp /amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf .
+annotation <- gffReadGR('genes.gtf', splitByTranscript=TRUE)
+matchup <- annotate_assembly(assembled = structure(expressed)$trans, 
+    annotated = annotation)
+matchup$tId <- names(structure(cov)$trans)[matchup$assembledInd]
+matchup$inExpressed <- matchup$tId %in% transcriptIDs(expressed)
+
+## Get gene ids
+attfield <- unlist(annotation)$group
+gnames <- getAttributeField(as.character(attfield), 'gene_name')
+gnames <- substr(gnames, 2, nchar(gnames)-1)
+splitnames <- split(gnames, rep(seq_along(annotation), 
+    times = elementLengths(annotation)))
+genes_ord <- sapply(splitnames, unique)
+
+## Select previously selected 10 genes + 10 new genes
+candidate_genes <- unique(genes_ord[matchup$annotatedInd[matchup$inExpressed]])
+
+# previously selected genes
+experiment_genes <- c('PIK3C2B', 'AASDHPPT', 'GNPNAT1', 'SLC25A17', 'PAICS', 
+    'THOC3', 'CD83', 'GTF2H5','VCP', 'CUL4B')
+
+## Select another set of 10 genes at random
+set.seed(20150219)
+experiment_genes <- c(experiment_genes, 
+    sample(candidate_genes[ !candidate_genes %in% experiment_genes ], 10,
+        replace = FALSE))
+
+gtfdf <- gffRead('genes.gtf')
+gtfdf$gene <- getAttributeField(gtfdf$attributes, 'gene_id')
+gtfdf$gene <- substr(gtfdf$gene, 2, nchar(gtfdf$gene)-1)
+smallgtf <- subset(gtfdf, gene %in% experiment_genes)
+write.table(smallgtf[,1:9], 'twenty_genes.gtf', col.names = FALSE,
+    quote = FALSE, row.names = FALSE, sep = '\t')
+
+## Write GTF with all genes except selected ones
+incomplete_gtf <-  subset(gtfdf, !gene %in% experiment_genes)
+write.table(incomplete_gtf[,1:9], 'incomplete_genes.gtf', col.names = FALSE,
+    quote = FALSE, row.names = FALSE, sep = '\t')
+```
+
+Save some info for later use.
+
+```{r}
+save(smallgtf, file = 'smallgtf.Rdata')
+save(gtfdf, file = 'gtfdf.Rdata')
+save(experiment_genes, file = 'experiment_genes.Rdata')
+```
+
+
+
+
+```{r}
+## Reproducibility info
+Sys.time()
+proc.time()
+devtools::session_info()
+```
+
