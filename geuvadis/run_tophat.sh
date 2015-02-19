@@ -16,7 +16,8 @@ incompleteGTF=/dcs01/ajaffe/mapBias/select_genes/incomplete_genes.gtf
 INDEX=$ANNOTATIONPATH/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
 
 # directory where downloaded reads should go
-DATADIR=/dcs01/ajaffe/mapBias/geuvadis/fastq
+ROOTDIR=/dcs01/ajaffe/mapBias/geuvadis
+DATADIR=${ROOTDIR}/fastq
 
 # number of cores to use for tophat
 CORES=4
@@ -39,12 +40,17 @@ date
 
 ### download the fastq files:
 mkdir -p ${DATADIR}
+mkdir -p ${DATADIR}/logs
+
 cd ${DATADIR}
 wget --passive-ftp ftp://ftp.sra.ebi.ac.uk/vol1/fastq/$SHORTNAME/$RUNID/${RUNID}_1.fastq.gz
 wget --passive-ftp ftp://ftp.sra.ebi.ac.uk/vol1/fastq/$SHORTNAME/$RUNID/${RUNID}_2.fastq.gz
 
 echo '**** Job ends ****'
 date
+
+# Move log files into the logs directory
+mv ${ROOTDIR}/${sname}.* ${DATADIR}/logs/
 EOF
     call="qsub .${sname}.sh"
     echo $call
@@ -67,6 +73,7 @@ echo '**** Job starts ****'
 date
 
 cd ${OUTDIR}
+mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
@@ -82,6 +89,9 @@ cufflinks -q -g ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
+
+# Move log files into the logs directory
+mv ${ROOTDIR}/${sname2}.* ${OUTDIR}/logs/
 EOF
     call="qsub .${sname2}.sh"
     echo $call
@@ -104,6 +114,7 @@ echo '**** Job starts ****'
 date
 
 cd ${OUTDIR}
+mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
@@ -119,6 +130,9 @@ cufflinks -q -g ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
+
+# Move log files into the logs directory
+mv ${ROOTDIR}/${sname3}.* ${OUTDIR}/logs/
 EOF
     call="qsub .${sname3}.sh"
     echo $call
@@ -141,6 +155,7 @@ echo '**** Job starts ****'
 date
 
 cd ${OUTDIR}
+mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
@@ -156,6 +171,9 @@ cufflinks -q -g ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
+
+# Move log files into the logs directory
+mv ${ROOTDIR}/${sname4}.* ${OUTDIR}/logs/
 EOF
     call="qsub .${sname4}.sh"
     echo $call
@@ -178,6 +196,7 @@ echo '**** Job starts ****'
 date
 
 cd ${OUTDIR}
+mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
@@ -193,6 +212,9 @@ cufflinks -q -g ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
+
+# Move log files into the logs directory
+mv ${ROOTDIR}/${sname5}.* ${OUTDIR}/logs/
 EOF
     call="qsub .${sname5}.sh"
     echo $call
