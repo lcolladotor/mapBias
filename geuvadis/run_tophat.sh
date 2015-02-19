@@ -91,7 +91,7 @@ EOF
     OUTDIR=/dcs01/ajaffe/mapBias/geuvadis/tophat/G/${SAMPLE}
     mkdir -p ${OUTDIR}
     
-    cat > .${sname2}.sh <<EOF
+    cat > .${sname3}.sh <<EOF
 #!/bin/bash
 #$ -cwd
 #$ -m e
