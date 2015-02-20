@@ -1,0 +1,186 @@
+---
+output:
+  html_document:
+    toc: true
+    theme: united
+  knitrBootstrap::bootstrap_document:
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+---
+
+Simulate reads
+==============
+
+Based on https://github.com/alyssafrazee/polyester_code/blob/master/polyester_manuscript.Rmd
+
+TopHat mode: `r tophat`
+
+
+```{r 'setup'}
+library('ballgown')
+library('GenomicRanges')
+library('GenomicAlignments')
+library('usefulstuff')
+setwd(file.path(mainDir, tophat))
+```
+
+
+# Check transcripts
+
+
+```{r 'check'}
+load(file.path('..' ,'..', 'select_genes', 'smallgtf.Rdata'))
+load(file.path('..' ,'..', 'select_genes', 'experiment_genes.Rdata'))
+smallgtf$transcript <- getAttributeField(smallgtf$attributes, 'transcript_id')
+smallgtf$transcript <- substr(smallgtf$transcript, 2,
+    nchar(smallgtf$transcript)-1)
+## Number of transcripts per selected gene
+trans <- sapply(tapply(smallgtf$transcript, smallgtf$gene, unique), length)
+trans
+
+## Check that its 15 transcripts for previously selected genes
+sum(trans[experiment_genes[1:10]])
+## Checking that 2 genes have 3 transcripts, 1 has 2, and all other 7 have 1
+table(trans[experiment_genes[1:10]])
+
+## Check info for new selected genes
+table(trans[experiment_genes[11:20]])
+
+## Overall numbers
+table(trans)
+sum(trans)
+```
+
+# Count matrix
+
+Generate count matrix as in [make_countmat.R](https://github.com/alyssafrazee/polyester_code/blob/master/make_countmat.R)
+
+```{r 'countmat', results = 'asis'}
+samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 'NA20772', 'NA20815')
+bamfiles <- sapply(samples, function(x) file.path('..', '..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
+bams <- BamFileList(bamfiles)
+names(bams) <- samples
+geneList <- gffRead(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'), 
+    splitByTranscript = TRUE, identifier = 'gene_name')
+gene_counts <- summarizeOverlaps(features = geneList, reads = bams,
+    ignore.strand=FALSE)
+countmat <- assay(gene_counts)
+save(countmat, file = 'countmat.Rdata')
+
+## Explore the mat
+knitr::kable(countmat, format = 'html')
+```
+
+
+# Isoforms abundance ratios
+
+Count the number of reads overlapping each gene and divide those gene counts among isoforms using ratios specified by isoform-level abundance estimates. Using Cufflinks version 2.2.1 to do the abundance ratios between isoforms.
+
+```{r 'isoformFPKM'}
+fpkmList <- NULL
+geuvadis_fpkms <- matrix(NA, nrow = sum(trans), ncol = 7)
+colnames(geuvadis_fpkms) <- samples
+
+for(i in seq_len(length(samples))){
+    samp <- samples[i]
+    fpkmList[[i]] <- read.table(file.path('..', '..', 'geuvadis', 'tophat', 
+        tophat, samp, 'isoforms.fpkm_tracking'), header=TRUE)
+    if(i == 1){
+        rownames(geuvadis_fpkms) <- fpkmList[[i]]$tracking_id
+    }
+    stopifnot(all(fpkmList[[i]]$tracking_id == rownames(geuvadis_fpkms)))
+    geuvadis_fpkms[, i] <- fpkmList[[i]]$FPKM
+}
+
+
+gtfdf <- gffRead(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'))
+transcripts <- getAttributeField(gtfdf$attributes, 'transcript_id')
+length(unique(transcripts))
+transcripts <- strip_quotes(transcripts)
+sum(transcripts %in% fpkmList[[1]]$tracking_id) / length(transcripts)
+genes <- getAttributeField(gtfdf$attributes, 'gene_name')
+length(unique(genes))
+#g2t <- split(transcripts, genes)
+#g2t <- lapply(g2t, unique)
+
+genefpkm <- lapply(fpkmList, function(x){
+    tnames <- split(x$tracking_id, x$gene_id)
+    ret <- split(x$FPKM, x$gene_id)
+    for(i in seq_along(ret)){
+        names(ret[[i]]) <- tnames[[i]]
+    }
+    return(ret)
+})
+transcript_percents <- lapply(genefpkm, function(x){
+    lapply(x, function(y){
+        y / sum(y)
+    })
+})
+
+transcript_counts <- matrix(unlist(transcript_percents), ncol=7)
+colnames(transcript_counts) <- colnames(countmat)
+rownames(transcript_counts) <- names(unlist(transcript_percents))[seq_len(sum(trans))]
+gene_id <- ss(rownames(transcript_counts), pattern='\\.', slot=1)
+rownames(transcript_counts) <- ss(rownames(transcript_counts), pattern='\\.', slot=2)
+
+count_ind <- match(gene_id, strip_quotes(rownames(countmat)))
+transcript_counts <- round(transcript_counts * countmat[count_ind,])
+head(transcript_counts)
+```
+
+
+# Simulate reads
+
+```{r 'simulate'}
+seqpath <- '/amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes' 
+stringset <- seq_gtf(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'),
+    seqs = seqpath)
+transcript_counts <- transcript_counts[match(strip_quotes(names(stringset)), 
+    rownames(transcript_counts)),]
+
+## simulate reads wrapper
+gen_reads <- function(seed, outdir, bias = 'none') {
+    dir.create(outdir)
+    
+    ## Create fasta files
+    simulate_experiment_countmat(gtf = file.path('..' ,'..', 'select_genes',
+        'twenty_genes.gtf'), seqpath = seqpath, 
+        readmat = transcript_counts, outdir = outdir, seed = 1482)
+    
+    ## gzip fasta files
+    for(i in seq_len(10)) {
+    	for(j in 1:2) {
+    		system(paste('gzip', file.path(outdir, paste0("sample_", 
+                sprintf('%02d', i), "_", j, ".fasta"))))
+    	}
+    }
+    
+    ## Generated pairs info file for running Tophat
+    sink(file.path(outdir, "paired.txt"))
+    for(i in seq_len(10)) {
+    	cat(paste0("sample_", sprintf('%02d', i), "_1.fasta.gz\tsample_", sprintf('%02d', i), "_2.fasta.gz\tsample", i, "\n"))
+    }
+    sink()
+}
+
+seeds <- c(1482, 1120, 2015021901, 2015021902)
+outdirs <- c('default_1', 'default_2', 'rnaf_1', 'rnaf_2')
+
+## Actually simulate the reads
+mapply(gen_reads, seeds, outdirs, rep(c('none', 'rnaf'), each = 2))
+```
+
+
+
+
+
+# Reproducibility
+
+```{r 'reproducibility'}
+## Reproducibility info
+# Time spent in this report
+diff(c(startTime, Sys.time()))
+Sys.time()
+devtools::session_info()
+```
+
