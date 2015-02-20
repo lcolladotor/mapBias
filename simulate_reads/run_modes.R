@@ -5,6 +5,6 @@ mainDir <- getwd()
 for(tophat in modes){
     dir.create(tophat, recursive = TRUE)
     startTime <- Sys.time()
-    render(file.path('..', 'simulate_reads.Rmd'), output_dir = 
-        file.path(mainDir, tophat))
+    render('simulate_reads.Rmd', output_dir = file.path(mainDir, tophat))
+    setwd(mainDir)
 }
