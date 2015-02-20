@@ -20,7 +20,8 @@ library('usefulstuff')
 library('derfinder')
 library('TxDb.Hsapiens.UCSC.hg19.knownGene')
 library('derfinderPlot')
-library('GGally')
+library('car')
+library('scales')
 ```
 
 
@@ -34,7 +35,7 @@ geu_samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542',
     'NA20772', 'NA20815')
 geu_bam <- file.path('..', 'geuvadis', 'tophat', tophat, geu_samples, 
     'accepted_hits.bam')
-sim_samples <- paste0('sample0', 1:7)
+sim_samples <- paste0('sample', 1:7)
 sim_dir <- rep(c('default_1', 'default_2', 'rnaf_1', 'rnaf_2'), each = 7)
 sim_bam <- file.path('..', 'simulate_reads', 'tophat', tophat, sim_dir, 
     sim_samples, 'accepted_hits.bam')
@@ -59,9 +60,13 @@ max(countOverlaps(regions, regions) - 1)
 ## Ignore strand for reading data
 strand(regions) <- "*"
 
+## Order by whether they were selected by Alyssa or a new random genes
+load(file.path('..', 'select_genes', 'experiment_genes.Rdata'))
+regions <- regions[match(experiment_genes, names(regions)), ]
+
 ## Load coverage
 fullCov <- fullCoverage(bams, chrs = levels(seqnames(regions)),
-    which = regions, protectWhich = 1e4, mc.cores = 7)
+    which = regions, protectWhich = 1e4, mc.cores = 7, verbose = FALSE)
 save(fullCov, file = file.path(tophat, 'fullCov.Rdata'))
 
 ## Load genomic state info (or make it if necessary)
@@ -91,7 +96,7 @@ groupInfo <- factor(c(rep('Geuvadis', 7), paste0(substr(sim_dir, 1, 1),
     substr(sim_dir, nchar(sim_dir), nchar(sim_dir)))), levels = 
     c('Geuvadis', 'd1', 'd2', 'r1', 'r2'))
 save(groupInfo, file = file.path(tophat, 'groupInfo.Rdata'))
-plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE)
 ```
 
 # Plots by sample
@@ -106,7 +111,7 @@ for(i in seq_len(7)) {
     par(def.par)
     plot.new()
     text(0.5, 0.5, geu_samples[i], cex = 5)
-    plotRegionCoverage(regions, sub_regCov, sub_groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+    plotRegionCoverage(regions, sub_regCov, sub_groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE)
 }
 ```
 
@@ -115,6 +120,18 @@ for(i in seq_len(7)) {
 Excludes bases where there is 0 coverage on all data sets.
 
 ```{r 'scatterPlotBySample', dev = 'CairoPNG'}
+# From ?pairs
+panel.cor <- function(x, y, digits = 3, prefix = "", cex.cor = 4, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- abs(cor(x, y))
+    txt <- format(c(r, 0.123456789), digits = digits)[1]
+    txt <- paste0(prefix, txt)
+    if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+    text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+
 for(i in seq_len(7)) {
     idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
     sub_regCov <- lapply(regCov, '[', idx)
@@ -128,7 +145,7 @@ for(i in seq_len(7)) {
         tmp <- sub_regCov[[j]][rowSums(sub_regCov[[j]]) > 0, ]
         if(nrow(tmp) == 0) next
         colnames(tmp) <- sub_groupInfo
-        ggpairs(tmp, upper = list(continuous = 'smooth'), lower = list(continuous = 'cor'), title = names(sub_regCov)[j])
+        scatterplotMatrix(tmp, smoother = FALSE, pch = 20, lower.panel = panel.cor, main = names(regions)[j], col = c("orange", NA, alpha('blue', 1/100)))
     }
 }
 ```
@@ -148,7 +165,7 @@ save(ex_regCov, file = file.path(tophat, 'ex_regCov.Rdata'))
 ex_annoReg <- annotateRegions(exons, gs$fullGenome, verbose = FALSE)
 save(ex_annoReg, file = file.path(tophat, 'ex_annoReg.Rdata'))
 ex_annoNear <- data.frame(name = names(exons), distance = 0, region = NA)
-plotRegionCoverage(exons, ex_regCov, groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+plotRegionCoverage(exons, ex_regCov, groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = seq_len(length(exons)))
 ```
 
 # Reduced exons by sample
@@ -161,7 +178,7 @@ for(i in seq_len(7)) {
     par(def.par)
     plot.new()
     text(0.5, 0.5, geu_samples[i], cex = 5)
-    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = seq_len(length(exons)))
 }
 ```
 
