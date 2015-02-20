@@ -60,8 +60,8 @@ max(countOverlaps(regions, regions) - 1)
 strand(regions) <- "*"
 
 ## Load coverage
-fullCov <- fullCoverage(gff, chrs = levels(seqnames(regions)), which = regions, 
-    protectWhich = 1e4, mc.cores = 7)
+fullCov <- fullCoverage(bams, chrs = levels(seqnames(regions)),
+    which = regions, protectWhich = 1e4, mc.cores = 7)
 save(fullCov, file = file.path(tophat, 'fullCov.Rdata'))
 
 ## Load genomic state info (or make it if necessary)
