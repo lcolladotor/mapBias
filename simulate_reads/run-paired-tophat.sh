@@ -87,7 +87,8 @@ echo "**** Job ends ****"
 date
 
 # move log files
-mv ${WDIR}/${sname}.* ${WDIR}/${libname}/
+mkdir -p ${WDIR}/${libname}/logs/
+mv ${WDIR}/${sname}.* ${WDIR}/${libname}/logs/
 EOF
         	call="qsub ${WDIR}/.${sname}.sh"
         	echo $call
