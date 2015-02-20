@@ -20,7 +20,7 @@ ROOTDIR=/dcs01/ajaffe/mapBias/geuvadis
 DATADIR=${ROOTDIR}/fastq
 
 # number of cores to use for tophat
-CORES=4
+CORES=1
 
 while read sampledata
 do
@@ -54,7 +54,7 @@ mv ${ROOTDIR}/${sname}.* ${DATADIR}/logs/
 EOF
     call="qsub .${sname}.sh"
     echo $call
-    $call
+    #$call
     
     sname2="map-tophat-noG-${SAMPLE}"
     OUTDIR=/dcs01/ajaffe/mapBias/geuvadis/tophat/noG/${SAMPLE}
@@ -77,15 +77,15 @@ mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
-tophat -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
+#tophat -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
 
 ## create .bam.bai file
 module load samtools/1.1
-samtools index accepted_hits.bam
+#samtools index accepted_hits.bam
 
 ## run cufflinks for estimating FPKM for 20 genes of interest
 module load cufflinks/2.2.1
-cufflinks -q -GTF ${smallGTF} accepted_hits.bam
+cufflinks -q -G ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
@@ -118,15 +118,15 @@ mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
-tophat -G $GTF -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
+#tophat -G $GTF -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
 
 ## create .bam.bai file
 module load samtools/1.1
-samtools index accepted_hits.bam
+#samtools index accepted_hits.bam
 
 ## run cufflinks for estimating FPKM for 20 genes of interest
 module load cufflinks/2.2.1
-cufflinks -q -GTF ${smallGTF} accepted_hits.bam
+cufflinks -q -G ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
@@ -159,15 +159,15 @@ mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
-tophat -G $GTF -T -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
+#tophat -G $GTF -T -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
 
 ## create .bam.bai file
 module load samtools/1.1
-samtools index accepted_hits.bam
+#samtools index accepted_hits.bam
 
 ## run cufflinks for estimating FPKM for 20 genes of interest
 module load cufflinks/2.2.1
-cufflinks -q -GTF ${smallGTF} accepted_hits.bam
+cufflinks -q -G ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date
@@ -200,15 +200,15 @@ mkdir -p ${OUTDIR}/logs
 module load tophat/2.0.13
 
 ### run TopHat 
-tophat -G ${incompleteGTF} -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
+#tophat -G ${incompleteGTF} -p ${CORES} -o ${OUTDIR} ${INDEX} ${DATADIR}/${RUNID}_1.fastq.gz ${DATADIR}/${RUNID}_2.fastq.gz
 
 ## create .bam.bai file
 module load samtools/1.1
-samtools index accepted_hits.bam
+#samtools index accepted_hits.bam
 
 ## run cufflinks for estimating FPKM for 20 genes of interest
 module load cufflinks/2.2.1
-cufflinks -q -GTF ${smallGTF} accepted_hits.bam
+cufflinks -q -G ${smallGTF} accepted_hits.bam
 
 echo '**** Job ends ****'
 date

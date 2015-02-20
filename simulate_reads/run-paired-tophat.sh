@@ -80,7 +80,7 @@ samtools index accepted_hits.bam
 
 ## run cufflinks for estimating FPKM for 20 genes of interest
 module load cufflinks/2.2.1
-cufflinks -q -GTF ${smallGTF} accepted_hits.bam
+cufflinks -q -G ${smallGTF} accepted_hits.bam
 
 echo "**** Job ends ****"
 date
