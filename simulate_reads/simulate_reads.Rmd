@@ -65,7 +65,7 @@ geneList <- gffReadGR(file.path('..', 'select_genes', 'twenty_genes.gtf'),
 gene_counts <- summarizeOverlaps(features = geneList, reads = bams,
     ignore.strand=FALSE)
 countmat <- assay(gene_counts)
-save(countmat, file = 'countmat.Rdata')
+save(countmat, file = file.path(tophat, 'countmat.Rdata'))
 
 ## Explore the mat
 knitr::kable(countmat, format = 'html')
@@ -140,6 +140,7 @@ transcript_counts <- transcript_counts[match(names(stringset),
 
 ## simulate reads wrapper
 gen_reads <- function(seed, outdir, bias = 'none') {
+    outdir <- file.path(tophat, outdir)
     dir.create(outdir)
     
     ## Create fasta files
