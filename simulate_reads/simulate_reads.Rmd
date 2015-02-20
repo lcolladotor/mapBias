@@ -22,7 +22,6 @@ library('GenomicRanges')
 library('GenomicAlignments')
 library('polyester')
 library('usefulstuff')
-setwd(file.path(mainDir, tophat))
 ```
 
 
@@ -30,8 +29,8 @@ setwd(file.path(mainDir, tophat))
 
 
 ```{r 'check', dev = 'CairoPNG'}
-load(file.path('..' ,'..', 'select_genes', 'smallgtf.Rdata'))
-load(file.path('..' ,'..', 'select_genes', 'experiment_genes.Rdata'))
+load(file.path('..', 'select_genes', 'smallgtf.Rdata'))
+load(file.path('..', 'select_genes', 'experiment_genes.Rdata'))
 smallgtf$transcript <- getAttributeField(smallgtf$attributes, 'transcript_id')
 smallgtf$transcript <- substr(smallgtf$transcript, 2,
     nchar(smallgtf$transcript)-1)
@@ -58,11 +57,11 @@ Generate count matrix as in [make_countmat.R](https://github.com/alyssafrazee/po
 
 ```{r 'countmat', results = 'asis', dev = 'CairoPNG'}
 samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 'NA20772', 'NA20815')
-bamfiles <- sapply(samples, function(x) file.path('..', '..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
+bamfiles <- sapply(samples, function(x) file.path('..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
 bams <- BamFileList(bamfiles)
 names(bams) <- samples
-geneList <- gffReadGR(file.path('..' ,'..', 'select_genes',
-    'twenty_genes.gtf'), splitByTranscript = TRUE, identifier = 'gene_name')
+geneList <- gffReadGR(file.path('..', 'select_genes', 'twenty_genes.gtf'),
+    splitByTranscript = TRUE, identifier = 'gene_name')
 gene_counts <- summarizeOverlaps(features = geneList, reads = bams,
     ignore.strand=FALSE)
 countmat <- assay(gene_counts)
@@ -84,7 +83,7 @@ colnames(geuvadis_fpkms) <- samples
 
 for(i in seq_len(length(samples))){
     samp <- samples[i]
-    fpkmList[[i]] <- read.table(file.path('..', '..', 'geuvadis', 'tophat', 
+    fpkmList[[i]] <- read.table(file.path('..', 'geuvadis', 'tophat', 
         tophat, samp, 'isoforms.fpkm_tracking'), header=TRUE)
     if(i == 1){
         rownames(geuvadis_fpkms) <- fpkmList[[i]]$tracking_id
@@ -94,7 +93,7 @@ for(i in seq_len(length(samples))){
 }
 
 
-gtfdf <- gffRead(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'))
+gtfdf <- gffRead(file.path('..', 'select_genes', 'twenty_genes.gtf'))
 transcripts <- getAttributeField(gtfdf$attributes, 'transcript_id')
 length(unique(transcripts))
 transcripts <- strip_quotes(transcripts)
@@ -134,7 +133,7 @@ head(transcript_counts)
 
 ```{r 'simulate', dev = 'CairoPNG'}
 seqpath <- '/amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes'
-stringset <- seq_gtf(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'),
+stringset <- seq_gtf(file.path('..', 'select_genes', 'twenty_genes.gtf'),
     seqs = seqpath)
 transcript_counts <- transcript_counts[match(names(stringset), 
     rownames(transcript_counts)),]
@@ -144,7 +143,7 @@ gen_reads <- function(seed, outdir, bias = 'none') {
     dir.create(outdir)
     
     ## Create fasta files
-    simulate_experiment_countmat(gtf = file.path('..' ,'..', 'select_genes',
+    simulate_experiment_countmat(gtf = file.path('..', 'select_genes',
         'twenty_genes.gtf'), seqpath = seqpath, 
         readmat = transcript_counts, outdir = outdir, seed = seed)
     
