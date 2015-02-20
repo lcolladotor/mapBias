@@ -55,7 +55,7 @@ sum(trans)
 
 Generate count matrix as in [make_countmat.R](https://github.com/alyssafrazee/polyester_code/blob/master/make_countmat.R)
 
-```{r 'countmat', results = 'asis', dev = 'CairoPNG'}
+```{r 'countmat', dev = 'CairoPNG'}
 samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 'NA20772', 'NA20815')
 bamfiles <- sapply(samples, function(x) file.path('..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
 bams <- BamFileList(bamfiles)
@@ -68,7 +68,7 @@ countmat <- assay(gene_counts)
 save(countmat, file = file.path(tophat, 'countmat.Rdata'))
 
 ## Explore the mat
-knitr::kable(countmat, format = 'html')
+countmat
 ```
 
 
@@ -125,7 +125,7 @@ rownames(transcript_counts) <- ss(rownames(transcript_counts), pattern='\\.', sl
 
 count_ind <- match(gene_id, strip_quotes(rownames(countmat)))
 transcript_counts <- round(transcript_counts * countmat[count_ind,])
-head(transcript_counts)
+transcript_counts
 ```
 
 
@@ -182,6 +182,7 @@ mapply(gen_reads, seeds, outdirs, rep(c('none', 'rnaf'), each = 2))
 # Time spent in this report
 diff(c(startTime, Sys.time()))
 Sys.time()
+options(width = 120)
 devtools::session_info()
 ```
 
