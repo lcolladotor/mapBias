@@ -16,7 +16,7 @@ Based on https://github.com/alyssafrazee/polyester_code/blob/master/polyester_ma
 TopHat mode: `r tophat`
 
 
-```{r 'setup'}
+```{r 'setup', dev = 'CairoPNG'}
 library('ballgown')
 library('GenomicRanges')
 library('GenomicAlignments')
@@ -29,7 +29,7 @@ setwd(file.path(mainDir, tophat))
 # Check transcripts
 
 
-```{r 'check'}
+```{r 'check', dev = 'CairoPNG'}
 load(file.path('..' ,'..', 'select_genes', 'smallgtf.Rdata'))
 load(file.path('..' ,'..', 'select_genes', 'experiment_genes.Rdata'))
 smallgtf$transcript <- getAttributeField(smallgtf$attributes, 'transcript_id')
@@ -56,7 +56,7 @@ sum(trans)
 
 Generate count matrix as in [make_countmat.R](https://github.com/alyssafrazee/polyester_code/blob/master/make_countmat.R)
 
-```{r 'countmat', results = 'asis'}
+```{r 'countmat', results = 'asis', dev = 'CairoPNG'}
 samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 'NA20772', 'NA20815')
 bamfiles <- sapply(samples, function(x) file.path('..', '..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
 bams <- BamFileList(bamfiles)
@@ -77,7 +77,7 @@ knitr::kable(countmat, format = 'html')
 
 Count the number of reads overlapping each gene and divide those gene counts among isoforms using ratios specified by isoform-level abundance estimates. Using Cufflinks version 2.2.1 to do the abundance ratios between isoforms.
 
-```{r 'isoformFPKM'}
+```{r 'isoformFPKM', dev = 'CairoPNG'}
 fpkmList <- NULL
 geuvadis_fpkms <- matrix(NA, nrow = sum(trans), ncol = 7)
 colnames(geuvadis_fpkms) <- samples
@@ -132,7 +132,7 @@ head(transcript_counts)
 
 # Simulate reads
 
-```{r 'simulate'}
+```{r 'simulate', dev = 'CairoPNG'}
 seqpath <- '/amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes'
 stringset <- seq_gtf(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'),
     seqs = seqpath)
@@ -177,7 +177,7 @@ mapply(gen_reads, seeds, outdirs, rep(c('none', 'rnaf'), each = 2))
 
 # Reproducibility
 
-```{r 'reproducibility'}
+```{r 'reproducibility', dev = 'CairoPNG'}
 ## Reproducibility info
 # Time spent in this report
 diff(c(startTime, Sys.time()))

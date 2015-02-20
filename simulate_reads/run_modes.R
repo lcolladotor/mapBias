@@ -1,7 +1,4 @@
 library('rmarkdown')
-library('knitr')
-
-opts_knit$set(device = 'CairoPNG')
 
 modes <- c('G', 'noG', 'GaT', 'incG')
 mainDir <- getwd()
