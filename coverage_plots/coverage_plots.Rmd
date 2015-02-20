@@ -42,7 +42,7 @@ samples <- c(geu_samples, paste0(substr(sim_dir, 1, 1), substr(sim_dir,
     nchar(sim_dir), nchar(sim_dir)), '-s', 1:7))
 bamfiles <- c(geu_bam, sim_bam)
 names(bamfiles) <- samples
-bams <- BamFileList(bams)
+bams <- BamFileList(bamfiles)
 
 ## Define gene regions
 gff <- gffReadGR(file.path('..', 'select_genes', 'twenty_genes.gtf'))

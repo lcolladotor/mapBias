@@ -15,4 +15,4 @@ echo "**** Job ends ****"
 date
 
 # Move log files
-mv map-run_modes.* logs/
+mv map-run_modes-covPlots.* logs/
