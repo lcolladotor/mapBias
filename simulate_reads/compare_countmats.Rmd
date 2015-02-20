@@ -13,7 +13,7 @@ Compare countmats
 
 Compare count matrices from the different TopHat alignment modes.
 
-```{r, device = 'CairoPNG'}
+```{r, dev = 'CairoPNG'}
 #modes <- c('G', 'noG', 'GaT', 'incG')
 modes <- c('G', 'GaT', 'incG')
 
