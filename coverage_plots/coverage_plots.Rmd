@@ -1,0 +1,179 @@
+---
+output:
+  knitrBootstrap::bootstrap_document:
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+  html_document:
+    toc: true
+    theme: united
+---
+
+Coverage plots
+==============
+
+TopHat mode: `r tophat`
+
+```{r 'setup', dev = 'CairoPNG'}
+library('GenomicAlignments')
+library('ballgown')
+library('usefulstuff')
+library('derfinder')
+library('TxDb.Hsapiens.UCSC.hg19.knownGene')
+library('derfinderPlot')
+library('GGally')
+```
+
+
+# Load Coverage
+
+
+
+```{r 'covSetup', dev = 'CairoPNG'}
+## Define paths to BAM files
+geu_samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 
+    'NA20772', 'NA20815')
+geu_bam <- file.path('..', 'geuvadis', 'tophat', tophat, geu_samples, 
+    'accepted_hits.bam')
+sim_samples <- paste0('sample0', 1:7)
+sim_dir <- rep(c('default_1', 'default_2', 'rnaf_1', 'rnaf_2'), each = 7)
+sim_bam <- file.path('..', 'tophat', tophat, sim_dir, sim_samples, 
+    'accepted_hits.bam')
+samples <- c(geu_samples, paste0(substr(sim_dir, 1, 1), substr(sim_dir, 
+    nchar(sim_dir), nchar(sim_dir)), '-s', 1:7))
+bamfiles <- c(geu_bam, sim_bam)
+names(bamfiles) <- samples
+bams <- BamFileList(bams)
+
+## Define gene regions
+gff <- gffReadGR(file.path('..', 'select_genes', 'twenty_genes.gtf'))
+genes <- split(gff, strip_quotes(getAttributeField(as.character(gff$group),     
+    'gene_id')))
+regions <- unlist(range(genes))
+## Add some padding to the regions
+regions <- resize(regions, width(regions) + 600, fix = 'center')
+
+## Are any of the regions overlapping by strand?
+countOverlaps(regions, regions) - 1
+max(countOverlaps(regions, regions) - 1)
+
+## Ignore strand for reading data
+strand(regions) <- "*"
+
+## Load coverage
+fullCov <- fullCoverage(gff, chrs = levels(seqnames(regions)), which = regions, 
+    protectWhich = 1e4, mc.cores = 7)
+save(fullCov, file = file.path(tophat, 'fullCov.Rdata'))
+
+## Load genomic state info (or make it if necessary)
+txdb <- keepSeqlevels(TxDb.Hsapiens.UCSC.hg19.knownGene, 
+    levels(seqnames(regions)))
+if(file.exists('gs.Rdata')) {
+    load('gs.Rdata')
+} else {
+    gs <- makeGenomicState(txdb, chrs = levels(seqnames(regions)), verbose = FALSE)
+    save(gs, file = 'gs.Rdata')
+}
+
+
+## Prep for plotting
+regCov <- getRegionCoverage(fullCov = fullCov, regions = regions,
+    verbose = FALSE)
+save(regCov, file = file.path(tophat, 'regCov.Rdata'))
+annoReg <- annotateRegions(regions, gs$fullGenome, verbose = FALSE)
+save(annoReg, file = file.path(tophat, 'annoReg.Rdata'))
+annoNear <- data.frame(name = names(regions), distance = 0, region = NA)
+```
+
+# Plots by gene
+
+```{r 'covPlot', dev = 'CairoPNG'}
+groupInfo <- factor(c(rep('Geuvadis', 7), paste0(substr(sim_dir, 1, 1),
+    substr(sim_dir, nchar(sim_dir), nchar(sim_dir)))), levels = 
+    c('Geuvadis', 'd1', 'd2', 'r1', 'r2'))
+save(groupInfo, file = file.path(tophat, 'groupInfo.Rdata'))
+plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+```
+
+# Plots by sample
+
+```{r 'covPlotBySample', dev = 'CairoPNG'}
+def.par <- par()
+def.par <- def.par[-which(names(def.par) %in% c('cin', 'cra', 'csi', 'cxy', 'din', 'page'))]
+for(i in seq_len(7)) {
+    idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
+    sub_regCov <- lapply(regCov, '[', idx)
+    sub_groupInfo <- groupInfo[idx]
+    par(def.par)
+    plot.new()
+    text(0.5, 0.5, geu_samples[i], cex = 5)
+    plotRegionCoverage(regions, sub_regCov, sub_groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+}
+```
+
+# Scatterplots by sample
+
+Excludes bases where there is 0 coverage on all data sets.
+
+```{r 'scatterPlotBySample', dev = 'CairoPNG'}
+for(i in seq_len(7)) {
+    idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
+    sub_regCov <- lapply(regCov, '[', idx)
+    sub_groupInfo <- groupInfo[idx]
+    
+    par(def.par)
+    plot.new()
+    text(0.5, 0.5, geu_samples[i], cex = 5)
+    
+    for(j in seq_len(length(sub_regCov))) {
+        tmp <- sub_regCov[[j]][rowSums(sub_regCov[[j]]) > 0, ]
+        if(nrow(tmp) == 0) next
+        colnames(tmp) <- sub_groupInfo
+        ggpairs(tmp, upper = list(continuous = 'smooth'), lower = list(continuous = 'cor'), title = names(sub_regCov)[j])
+    }
+}
+```
+
+# By reduced exons
+
+```{r 'covExons', dev = 'CairoPNG'}
+exons <- unlist(reduce(genes))
+## Check that none overlap
+max(countOverlaps(exons) - 1)
+strand(exons) <- "*"
+
+## Prep for plotting
+ex_regCov <- getRegionCoverage(fullCov = fullCov, regions = exons,
+    verbose = FALSE)
+save(ex_regCov, file = file.path(tophat, 'ex_regCov.Rdata'))
+ex_annoReg <- annotateRegions(exons, gs$fullGenome, verbose = FALSE)
+save(ex_annoReg, file = file.path(tophat, 'ex_annoReg.Rdata'))
+ex_annoNear <- data.frame(name = names(exons), distance = 0, region = NA)
+plotRegionCoverage(exons, ex_regCov, groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+```
+
+# Reduced exons by sample
+
+```{r 'covExonsBySample', dev = 'CairoPNG'}
+for(i in seq_len(7)) {
+    idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
+    sub_regCov <- lapply(ex_regCov, '[', idx)
+    sub_groupInfo <- groupInfo[idx]
+    par(def.par)
+    plot.new()
+    text(0.5, 0.5, geu_samples[i], cex = 5)
+    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 1, ask = FALSE)
+}
+```
+
+
+
+# Reproducibility
+
+```{r 'reproducibility', dev = 'CairoPNG'}
+## Reproducibility info
+# Time spent in this report
+diff(c(startTime, Sys.time()))
+Sys.time()
+options(width = 120)
+devtools::session_info()
+```
