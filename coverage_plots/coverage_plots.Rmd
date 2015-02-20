@@ -36,8 +36,8 @@ geu_bam <- file.path('..', 'geuvadis', 'tophat', tophat, geu_samples,
     'accepted_hits.bam')
 sim_samples <- paste0('sample0', 1:7)
 sim_dir <- rep(c('default_1', 'default_2', 'rnaf_1', 'rnaf_2'), each = 7)
-sim_bam <- file.path('..', 'tophat', tophat, sim_dir, sim_samples, 
-    'accepted_hits.bam')
+sim_bam <- file.path('..', 'simulate_reads', 'tophat', tophat, sim_dir, 
+    sim_samples, 'accepted_hits.bam')
 samples <- c(geu_samples, paste0(substr(sim_dir, 1, 1), substr(sim_dir, 
     nchar(sim_dir), nchar(sim_dir)), '-s', 1:7))
 bamfiles <- c(geu_bam, sim_bam)
