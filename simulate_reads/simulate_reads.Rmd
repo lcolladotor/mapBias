@@ -20,6 +20,7 @@ TopHat mode: `r tophat`
 library('ballgown')
 library('GenomicRanges')
 library('GenomicAlignments')
+library('polyester')
 library('usefulstuff')
 setwd(file.path(mainDir, tophat))
 ```
@@ -60,8 +61,8 @@ samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 'NA20772', '
 bamfiles <- sapply(samples, function(x) file.path('..', '..', 'geuvadis', 'tophat', tophat, x, 'accepted_hits.bam'))
 bams <- BamFileList(bamfiles)
 names(bams) <- samples
-geneList <- gffRead(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'), 
-    splitByTranscript = TRUE, identifier = 'gene_name')
+geneList <- gffReadGR(file.path('..' ,'..', 'select_genes',
+    'twenty_genes.gtf'), splitByTranscript = TRUE, identifier = 'gene_name')
 gene_counts <- summarizeOverlaps(features = geneList, reads = bams,
     ignore.strand=FALSE)
 countmat <- assay(gene_counts)
@@ -132,10 +133,10 @@ head(transcript_counts)
 # Simulate reads
 
 ```{r 'simulate'}
-seqpath <- '/amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes' 
+seqpath <- '/amber2/scratch/jleek/iGenomes-index/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes'
 stringset <- seq_gtf(file.path('..' ,'..', 'select_genes', 'twenty_genes.gtf'),
     seqs = seqpath)
-transcript_counts <- transcript_counts[match(strip_quotes(names(stringset)), 
+transcript_counts <- transcript_counts[match(names(stringset), 
     rownames(transcript_counts)),]
 
 ## simulate reads wrapper
@@ -145,10 +146,10 @@ gen_reads <- function(seed, outdir, bias = 'none') {
     ## Create fasta files
     simulate_experiment_countmat(gtf = file.path('..' ,'..', 'select_genes',
         'twenty_genes.gtf'), seqpath = seqpath, 
-        readmat = transcript_counts, outdir = outdir, seed = 1482)
+        readmat = transcript_counts, outdir = outdir, seed = seed)
     
     ## gzip fasta files
-    for(i in seq_len(10)) {
+    for(i in seq_len(7)) {
     	for(j in 1:2) {
     		system(paste('gzip', file.path(outdir, paste0("sample_", 
                 sprintf('%02d', i), "_", j, ".fasta"))))
@@ -157,13 +158,13 @@ gen_reads <- function(seed, outdir, bias = 'none') {
     
     ## Generated pairs info file for running Tophat
     sink(file.path(outdir, "paired.txt"))
-    for(i in seq_len(10)) {
+    for(i in seq_len(7)) {
     	cat(paste0("sample_", sprintf('%02d', i), "_1.fasta.gz\tsample_", sprintf('%02d', i), "_2.fasta.gz\tsample", i, "\n"))
     }
     sink()
 }
 
-seeds <- c(1482, 1120, 2015021901, 2015021902)
+seeds <- c(1482, 2015021901, 1120, 2015021902)
 outdirs <- c('default_1', 'default_2', 'rnaf_1', 'rnaf_2')
 
 ## Actually simulate the reads
