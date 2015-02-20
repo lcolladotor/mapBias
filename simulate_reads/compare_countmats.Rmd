@@ -1,0 +1,75 @@
+---
+output:
+  html_document:
+    toc: true
+    theme: united
+  knitrBootstrap::bootstrap_document:
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+---
+
+Compare countmats
+==================
+
+Compare count matrices from the different TopHat alignment modes.
+
+```{r, device = 'CairoPNG'}
+#modes <- c('G', 'noG', 'GaT', 'incG')
+modes <- c('G', 'GaT', 'incG')
+
+countmats <- lapply(modes, function(x) {
+    load(file.path(x, 'countmat.Rdata'))
+    return(countmat)
+})
+names(countmats) <- modes
+
+countvecs <- sapply(countmats, as.vector)
+
+library('GGally')
+ggpairs(countvecs)
+
+library('car')
+scatterplotMatrix(countvecs, smoother = FALSE)
+
+
+calcPair <- function(mat, f) {
+    n <- ncol(mat)
+    stopifnot(n >= 2)
+    res <- matrix(NA, ncol = n, nrow = n)
+    for(i in seq_len(n)) {
+        for(j in i:n) {
+            res[i, j] <- res[j, i] <- f(mat[, i] - mat[, j])
+        }
+    }
+    colnames(res) <- rownames(res) <- colnames(mat)
+    return(res)
+}
+
+## Mean difference between modes
+calcPair(countvecs, mean)
+
+## sd of difference between modes
+calcPair(countvecs, sd)
+
+## Median difference between modes
+calcPair(countvecs, median)
+
+## Max difference between modes
+calcPair(countvecs, max)
+
+## Min difference between modes
+calcPair(countvecs, min)
+
+## Data
+countvecs
+```
+
+# Reproducibility
+
+```{r 'reproducibility', dev = 'CairoPNG'}
+## Reproducibility info
+Sys.time()
+proc.time()
+options(width = 120)
+devtools::session_info()
+```
