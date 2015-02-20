@@ -6,7 +6,12 @@
 echo "**** Job starts ****"
 date
 
+mkdir -p logs
+
 Rscript run_modes.R
 
 echo "**** Job ends ****"
 date
+
+# Move log files
+mv map-run_mods.* logs/
