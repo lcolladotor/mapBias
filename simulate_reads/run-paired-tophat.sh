@@ -19,7 +19,7 @@ INDEX=$ANNOTATIONPATH/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
 
 
 #for THmode in G GaT noG incG
-for THmode in G GaT incG
+for THmode in noG
 do
     for sampledir in default_1 default_2 rnaf_1 rnaf_2
     do

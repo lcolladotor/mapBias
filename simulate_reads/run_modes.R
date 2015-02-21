@@ -1,7 +1,7 @@
 library('rmarkdown')
 
 #modes <- c('G', 'noG', 'GaT', 'incG')
-modes <- c('G', 'GaT', 'incG')
+modes <- c('noG')
 mainDir <- getwd()
 for(tophat in modes){
     dir.create(tophat, recursive = TRUE)

@@ -14,8 +14,7 @@ Compare countmats
 Compare count matrices from the different TopHat alignment modes.
 
 ```{r, dev = 'CairoPNG'}
-#modes <- c('G', 'noG', 'GaT', 'incG')
-modes <- c('G', 'GaT', 'incG')
+modes <- c('G', 'noG', 'GaT', 'incG')
 
 countmats <- lapply(modes, function(x) {
     load(file.path(x, 'countmat.Rdata'))
