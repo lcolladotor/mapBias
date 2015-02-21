@@ -13,7 +13,7 @@ Compare countmats
 
 Compare count matrices from the different TopHat alignment modes.
 
-```{r, dev = 'CairoPNG'}
+```{r}
 modes <- c('G', 'noG', 'GaT', 'incG')
 
 countmats <- lapply(modes, function(x) {
@@ -24,11 +24,21 @@ names(countmats) <- modes
 
 countvecs <- sapply(countmats, as.vector)
 
-library('GGally')
-ggpairs(countvecs)
+# From ?pairs
+panel.cor <- function(x, y, digits = 3, prefix = "", cex.cor = 4, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- abs(cor(x, y))
+    txt <- format(c(r, 0.123456789), digits = digits)[1]
+    txt <- paste0(prefix, txt)
+    #if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+    text(0.5, 0.5, txt, cex = cex.cor * r)
+}
 
 library('car')
-scatterplotMatrix(countvecs, smoother = FALSE)
+library('scales')
+scatterplotMatrix(countvecs, smoother = FALSE, pch = 20, lower.panel = panel.cor, col = c("orange", NA, alpha('blue', 1/5)))
 
 
 calcPair <- function(mat, f) {
@@ -59,13 +69,25 @@ calcPair(countvecs, max)
 ## Min difference between modes
 calcPair(countvecs, min)
 
-## Data
+## Show the data
 countvecs
 ```
 
+Visualize changes across modes by sample (one line per gene) or by gene (one line per sample).
+
+```{r, fig.width = 16}
+d <- data.frame(count = as.vector(countvecs), mode = rep(colnames(countvecs), each = nrow(countvecs)), gene = gsub('\\"', '', rep(rownames(countmats[[1]]), ncol(countmats[[1]]))), sample = rep(rep(colnames(countmats[[1]]), each = nrow(countmats[[1]])), ncol(countvecs)))
+
+library('ggplot2')
+ggplot(d, aes(x = mode, y = count, group = gene)) + geom_line() + facet_grid(. ~ sample)
+ggplot(d, aes(x = mode, y = count, group = sample)) + geom_line() + facet_grid(. ~ gene)  + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
+ggplot(d, aes(x = mode, y = log(count), group = sample)) + geom_line() + facet_grid(. ~ gene)  + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
+```
+
+
 # Reproducibility
 
-```{r 'reproducibility', dev = 'CairoPNG'}
+```{r 'reproducibility'}
 ## Reproducibility info
 Sys.time()
 proc.time()
