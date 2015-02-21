@@ -21,6 +21,7 @@ library('derfinder')
 library('TxDb.Hsapiens.UCSC.hg19.knownGene')
 library('derfinderPlot')
 library('car')
+library('RColorBrewer')
 library('scales')
 ```
 
@@ -95,8 +96,9 @@ annoNear <- data.frame(name = names(regions), distance = 0, region = NA)
 groupInfo <- factor(c(rep('Geuvadis', 7), paste0(substr(sim_dir, 1, 1),
     substr(sim_dir, nchar(sim_dir), nchar(sim_dir)))), levels = 
     c('Geuvadis', 'd1', 'd2', 'r1', 'r2'))
+colors <- c('black', rev(brewer.pal(4, 'Paired')))
 save(groupInfo, file = file.path(tophat, 'groupInfo.Rdata'))
-plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE)
+plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE, colors = alpha(colors, 1/3))
 ```
 
 # Plots by sample
@@ -104,15 +106,57 @@ plotRegionCoverage(regions, regCov, groupInfo, annoNear, annoReg, txdb = txdb, s
 ```{r 'covPlotBySample', dev = 'CairoPNG'}
 def.par <- par()
 def.par <- def.par[-which(names(def.par) %in% c('cin', 'cra', 'csi', 'cxy', 'din', 'page'))]
-for(i in seq_len(7)) {
+covBySamp <- function(i) {
     idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
     sub_regCov <- lapply(regCov, '[', idx)
     sub_groupInfo <- groupInfo[idx]
     par(def.par)
     plot.new()
     text(0.5, 0.5, geu_samples[i], cex = 5)
-    plotRegionCoverage(regions, sub_regCov, sub_groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE)
+    plotRegionCoverage(regions, sub_regCov, sub_groupInfo, annoNear, annoReg, txdb = txdb, scalefac = 32, ask = FALSE, colors = colors)
 }
+```
+
+## Sample 1
+
+```{r 'covPlotBySample1', dev = 'CairoPNG'}
+covBySamp(1)
+```
+
+## Sample 2
+
+```{r 'covPlotBySample2', dev = 'CairoPNG'}
+covBySamp(2)
+```
+
+## Sample 3
+
+```{r 'covPlotBySample3', dev = 'CairoPNG'}
+covBySamp(3)
+```
+
+## Sample 4
+
+```{r 'covPlotBySample4', dev = 'CairoPNG'}
+covBySamp(4)
+```
+
+## Sample 5
+
+```{r 'covPlotBySample5', dev = 'CairoPNG'}
+covBySamp(5)
+```
+
+## Sample 6
+
+```{r 'covPlotBySample6', dev = 'CairoPNG'}
+covBySamp(6)
+```
+
+## Sample 7
+
+```{r 'covPlotBySample7', dev = 'CairoPNG'}
+covBySamp(7)
 ```
 
 # Scatterplots by sample
@@ -128,11 +172,11 @@ panel.cor <- function(x, y, digits = 3, prefix = "", cex.cor = 4, ...)
     r <- abs(cor(x, y))
     txt <- format(c(r, 0.123456789), digits = digits)[1]
     txt <- paste0(prefix, txt)
-    if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+    #if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
     text(0.5, 0.5, txt, cex = cex.cor * r)
 }
 
-for(i in seq_len(7)) {
+scatterBySamp <- function(i) {
     idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
     sub_regCov <- lapply(regCov, '[', idx)
     sub_groupInfo <- groupInfo[idx]
@@ -150,6 +194,48 @@ for(i in seq_len(7)) {
 }
 ```
 
+## Sample 1
+
+```{r 'scatterPlotBySample1', dev = 'CairoPNG'}
+scatterBySamp(1)
+```
+
+## Sample 2
+
+```{r 'scatterPlotBySample2', dev = 'CairoPNG'}
+scatterBySamp(2)
+```
+
+## Sample 3
+
+```{r 'scatterPlotBySample3', dev = 'CairoPNG'}
+scatterBySamp(3)
+```
+
+## Sample 4
+
+```{r 'scatterPlotBySample4', dev = 'CairoPNG'}
+scatterBySamp(4)
+```
+
+## Sample 5
+
+```{r 'scatterPlotBySample5', dev = 'CairoPNG'}
+scatterBySamp(5)
+```
+
+## Sample 6
+
+```{r 'scatterPlotBySample6', dev = 'CairoPNG'}
+scatterBySamp(6)
+```
+
+## Sample 7
+
+```{r 'scatterPlotBySample7', dev = 'CairoPNG'}
+scatterBySamp(7)
+```
+
 # By reduced exons
 
 ```{r 'covExons', dev = 'CairoPNG'}
@@ -165,23 +251,64 @@ save(ex_regCov, file = file.path(tophat, 'ex_regCov.Rdata'))
 ex_annoReg <- annotateRegions(exons, gs$fullGenome, verbose = FALSE)
 save(ex_annoReg, file = file.path(tophat, 'ex_annoReg.Rdata'))
 ex_annoNear <- data.frame(name = names(exons), distance = 0, region = NA)
-plotRegionCoverage(exons, ex_regCov, groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = seq_len(length(exons)))
+plotRegionCoverage(exons, ex_regCov, groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = seq_len(length(exons)), colors = alpha(colors, 1/3))
 ```
 
 # Reduced exons by sample
 
 ```{r 'covExonsBySample', dev = 'CairoPNG'}
-for(i in seq_len(7)) {
+reducedExonSamp <- function(i) {
     idx <- grepl(paste0(geu_samples[i], '|s', i), samples)
     sub_regCov <- lapply(ex_regCov, '[', idx)
     sub_groupInfo <- groupInfo[idx]
     par(def.par)
     plot.new()
     text(0.5, 0.5, geu_samples[i], cex = 5)
-    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = which(sapply(sub_regCov, function(x) { max(x) > 0})))
+    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = which(sapply(sub_regCov, function(x) { max(x) > 0})), colors = colors)
 }
 ```
 
+## Sample 1
+
+```{r 'covExonsBySample1', dev = 'CairoPNG'}
+reducedExonSamp(1)
+```
+
+## Sample 2
+
+```{r 'covExonsBySample2', dev = 'CairoPNG'}
+reducedExonSamp(2)
+```
+
+## Sample 3
+
+```{r 'covExonsBySample3', dev = 'CairoPNG'}
+reducedExonSamp(3)
+```
+
+## Sample 4
+
+```{r 'covExonsBySample4', dev = 'CairoPNG'}
+reducedExonSamp(4)
+```
+
+## Sample 5
+
+```{r 'covExonsBySample5', dev = 'CairoPNG'}
+reducedExonSamp(5)
+```
+
+## Sample 6
+
+```{r 'covExonsBySample6', dev = 'CairoPNG'}
+reducedExonSamp(6)
+```
+
+## Sample 7
+
+```{r 'covExonsBySample7', dev = 'CairoPNG'}
+reducedExonSamp(7)
+```
 
 
 # Reproducibility
