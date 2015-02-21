@@ -178,7 +178,7 @@ for(i in seq_len(7)) {
     par(def.par)
     plot.new()
     text(0.5, 0.5, geu_samples[i], cex = 5)
-    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = seq_len(length(exons)))
+    plotRegionCoverage(exons, sub_regCov, sub_groupInfo, ex_annoNear, ex_annoReg, txdb = txdb, scalefac = 32, ask = FALSE, whichRegions = which(sapply(sub_regCov, function(x) { max(x) > 0})))
 }
 ```
 
