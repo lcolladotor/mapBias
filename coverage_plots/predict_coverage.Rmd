@@ -19,6 +19,7 @@ TopHat mode: `r tophat`
 library('ballgown')
 library('GenomicRanges')
 library('usefulstuff')
+library('forecast')
 library('ggplot2')
 library('plyr')
 ```
