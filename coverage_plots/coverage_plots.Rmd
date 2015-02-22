@@ -202,37 +202,37 @@ scatterBySamp(1)
 
 ## Sample 2
 
-```{r 'scatterPlotBySample2', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample2', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(2)
 ```
 
 ## Sample 3
 
-```{r 'scatterPlotBySample3', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample3', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(3)
 ```
 
 ## Sample 4
 
-```{r 'scatterPlotBySample4', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample4', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(4)
 ```
 
 ## Sample 5
 
-```{r 'scatterPlotBySample5', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample5', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(5)
 ```
 
 ## Sample 6
 
-```{r 'scatterPlotBySample6', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample6', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(6)
 ```
 
 ## Sample 7
 
-```{r 'scatterPlotBySample7', dev = 'CairoPNG'}
+```{r 'scatterPlotBySample7', dev = 'CairoPNG', eval = tophat != 'incG'}
 scatterBySamp(7)
 ```
 
