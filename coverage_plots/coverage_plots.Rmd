@@ -187,7 +187,7 @@ scatterBySamp <- function(i) {
     
     for(j in seq_len(length(sub_regCov))) {
         tmp <- sub_regCov[[j]][rowSums(sub_regCov[[j]]) > 0, ]
-        if(nrow(tmp) == 0) next
+        if(nrow(tmp) < 2) next
         colnames(tmp) <- sub_groupInfo
         scatterplotMatrix(tmp, smoother = FALSE, pch = 20, lower.panel = panel.cor, main = names(regions)[j], col = c("orange", NA, alpha('blue', 1/100)))
     }
