@@ -142,7 +142,10 @@ if(strand=='+'){
 # Fixed version
 
 ```{r 'fixed', fig.width = 12, dev = 'CairoPNG'}
-gene_region <- resize(range(gene1), width = width(range(gene1)) + 2e5)
+## Clean objects
+rm(list = ls()[!ls() %in% c('gene', 'gene1', 'bams', 'sampleind', 'gene_inds', 'tx', 'strand', 'myflag')])
+
+gene_region <- resize(range(gene1), width = width(range(gene1)) + 2e5, fix = 'center')
 
 param = ScanBamParam(which=gene_region, flag=myflag)
 alignments = readGAlignments(bams[[sampleind]], param=param)
@@ -155,22 +158,19 @@ covtrack = covrlelist[[ind]][xax]
 
 # find the giant intron
 bigstart = which.max(runLength(covtrack))
-iwidth = max(runLength(covtrack))
-istart = sum(runLength(covtrack)[1:(bigstart-1)])
-covtmp_black = covtrack
-runLength(covtmp_black)[bigstart] = runLength(covtmp_black)[bigstart]-(iwidth-500)
+iwidth = 13327
+istart = 902
+covtmp_black = covtrack[-(istart:(istart + iwidth - 500 - 1))]
 
 simalignments = readGAlignments(bams[['d1-s1']], param=param)
 covrlelist2 = coverage(simalignments)
 simcov = covrlelist2[[which(names(covrlelist2) == chr)]][xax]
-covtmp_blue = simcov
-runLength(covtmp_blue)[which.max(runLength(covtmp_blue))] = runLength(covtmp_blue)[which.max(runLength(covtmp_blue))]-(iwidth-500)
+covtmp_blue = simcov[-(istart:(istart + iwidth - 500 - 1))]
 
 simaln_bias = readGAlignments(bams[['r1-s1']], param=param)
 covrlelist3 = coverage(simaln_bias)
 simcov_bias = covrlelist3[[which(names(covrlelist3) == chr)]][xax]
-covtmp_pink = simcov_bias
-runLength(covtmp_pink)[which.max(runLength(covtmp_pink))] = runLength(covtmp_pink)[which.max(runLength(covtmp_pink))]-(iwidth-500)
+covtmp_pink = simcov_bias[-(istart:(istart + iwidth - 500 - 1))]
 
 txtmp = tx[unique(names(gene1))]
 txtmp = lapply(txtmp, function(x){
