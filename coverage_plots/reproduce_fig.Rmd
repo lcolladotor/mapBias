@@ -143,7 +143,7 @@ if(strand=='+'){
 
 ```{r 'fixed', fig.width = 12, dev = 'CairoPNG'}
 ## Clean objects
-rm(list = ls()[!ls() %in% c('gene', 'gene1', 'bams', 'sampleind', 'gene_inds', 'tx', 'strand', 'myflag')])
+rm(list = ls()[!ls() %in% c('gene', 'gene1', 'bams', 'sampleind', 'gene_inds', 'tx', 'strand', 'myflag', 'startTime', 'tophat', 'mainDir')])
 
 gene_region <- resize(range(gene1), width = width(range(gene1)) + 2e5, fix = 'center')
 
