@@ -77,7 +77,7 @@ simcov_bias = covrlelist3[[which(names(covrlelist3) == chr)]][xax]
 covtmp_pink = simcov_bias
 runLength(covtmp_pink)[which.max(runLength(covtmp_pink))] = runLength(covtmp_pink)[which.max(runLength(covtmp_pink))]-(iwidth-500)
 
-txtmp = tx[c(1,5,8)]
+txtmp = tx[gsub('\\"', '', unique(names(gene1)))]
 txtmp = lapply(txtmp, function(x){
     ret = x
     start(ret)[3:5] = start(ret)[3:5]-(iwidth-500)
