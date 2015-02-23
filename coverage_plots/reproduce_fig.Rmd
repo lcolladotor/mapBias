@@ -1,0 +1,151 @@
+---
+output:
+  html_document:
+    toc: true
+    theme: united
+  knitrBootstrap::bootstrap_document:
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+---
+
+Reproduce fig
+=============
+
+TopHat mode: `r tophat`
+
+```{r 'setup', dev = 'CairoPNG'}
+library('GenomicAlignments')
+library('ballgown')
+#library('usefulstuff')
+```
+
+```{r, fig.width = 12, dev = 'CairoPNG'}
+## Define paths to BAM files
+geu_samples <- c('NA06985', 'NA12144', 'NA12776', 'NA18858', 'NA20542', 
+    'NA20772', 'NA20815')
+geu_bam <- file.path('..', 'geuvadis', 'tophat', tophat, geu_samples, 
+    'accepted_hits.bam')
+sim_samples <- paste0('sample', 1:7)
+sim_dir <- rep(c('default_1', 'default_2', 'rnaf_1', 'rnaf_2'), each = 7)
+sim_bam <- file.path('..', 'simulate_reads', 'tophat', tophat, sim_dir, 
+    sim_samples, 'accepted_hits.bam')
+samples <- c(geu_samples, paste0(substr(sim_dir, 1, 1), substr(sim_dir, 
+    nchar(sim_dir), nchar(sim_dir)), '-s', 1:7))
+bamfiles <- c(geu_bam, sim_bam)
+names(bamfiles) <- samples
+bams <- BamFileList(bamfiles)
+
+tx = gffReadGR(file.path('..', 'select_genes', 'twenty_genes.gtf'), splitByTranscript=TRUE)
+genes = lapply(tx, function(x){
+    unique(getAttributeField(as.character(mcols(x)$group), 'gene_id'))
+})
+
+## Make fig
+gene = '"CD83"'
+sampleind = 'NA06985'
+gene_inds = which(genes == gene)
+gene1 = unlist(tx[gene_inds])
+strand = unique(strand(gene1))
+mcols(gene1) = NULL
+
+myflag = scanBamFlag(isDuplicate=FALSE, isNotPassingQualityControls=FALSE)
+param = ScanBamParam(which=gene1, flag=myflag)
+alignments = readGAlignments(bams[[sampleind]], param=param)
+plot_xlim = c(min(start(gene1))-20, max(end(gene1))+20)
+xax = plot_xlim[1]:plot_xlim[2]
+chr = unique(as.character(seqnames(gene1)))
+covrlelist = coverage(alignments)
+ind = which(names(covrlelist) == chr)
+covtrack = covrlelist[[ind]][xax]
+
+# find the giant intron
+bigstart = which.max(runLength(covtrack))
+iwidth = max(runLength(covtrack))
+istart = sum(runLength(covtrack)[1:(bigstart-1)])
+covtmp_black = covtrack
+runLength(covtmp_black)[bigstart] = runLength(covtmp_black)[bigstart]-(iwidth-500)
+
+simalignments = readGAlignments(bams[['d1-s1']], param=param)
+covrlelist2 = coverage(simalignments)
+simcov = covrlelist2[[which(names(covrlelist2) == chr)]][xax]
+covtmp_blue = simcov
+runLength(covtmp_blue)[which.max(runLength(covtmp_blue))] = runLength(covtmp_blue)[which.max(runLength(covtmp_blue))]-(iwidth-500)
+
+simaln_bias = readGAlignments(bams[['r1-s1']], param=param)
+covrlelist3 = coverage(simaln_bias)
+simcov_bias = covrlelist3[[which(names(covrlelist3) == chr)]][xax]
+covtmp_pink = simcov_bias
+runLength(covtmp_pink)[which.max(runLength(covtmp_pink))] = runLength(covtmp_pink)[which.max(runLength(covtmp_pink))]-(iwidth-500)
+
+txtmp = tx[c(1,5,8)]
+txtmp = lapply(txtmp, function(x){
+    ret = x
+    start(ret)[3:5] = start(ret)[3:5]-(iwidth-500)
+    end(ret)[3:5] = end(ret)[3:5]-(iwidth-500)
+    return(ret)
+})
+txtmp = lapply(txtmp, function(x){
+    ret = x
+    start(ret) = start(ret) - plot_xlim[1]
+    end(ret) = end(ret) - plot_xlim[1]
+    return(ret)
+})
+
+ymax = max(c(covtmp_black, covtmp_blue, covtmp_pink))
+transcript_width = round(ymax/4)
+isoforms = txtmp
+ymin = -length(gene_inds)*transcript_width - transcript_width
+
+# here's the plot:
+plot(covtmp_blue, type='l', col='blue', ylab='',
+    xlab='genomic position, chr6', ylim=c(ymin, ymax), yaxt='n', xaxt='n')
+lines(covtmp_pink, col='deeppink')
+lines(covtmp_black, col='black')
+axis(side=2, at=pretty(0:ymax), labels=as.character(pretty(0:ymax)))
+intron_start_ind = which(xax == 14118297)
+xax_print = xax[-c(intron_start_ind:(intron_start_ind+iwidth-500))]
+labels = xax_print[c(1, pretty(1:length(covtmp_blue))[-1])]
+labels = labels+6
+labels[8] = 14137300
+axis(side=1, at=pretty(1:length(covtmp_blue))[-2], labels=labels[-2])
+abline(v=istart+20, lty=3, col='gray', lwd=3)
+
+isoforms = txtmp
+for(txind in seq_along(isoforms)){
+    trx = isoforms[[txind]]
+    for(exind in seq_along(trx)){
+        # draw the exons
+        yup = -txind*transcript_width - (0.4*transcript_width)
+        ydown = -txind*transcript_width + (0.4*transcript_width)
+        polygon(x=c(start(trx)[exind], start(trx)[exind], 
+            end(trx)[exind], end(trx)[exind]), 
+            y=c(ydown, yup, yup, ydown), col='gray20')
+        # draw the lines connecting exons
+        if(exind != length(trx)){
+            lines(c(end(trx)[exind], start(trx)[exind+1]), 
+               c(-txind*transcript_width, -txind*transcript_width), 
+                    lwd=2, col='gray60')
+        }
+    }
+}
+abline(h= 0.5*(0.4*transcript_width-transcript_width), col='gray')
+legend('topright', col=c('black','blue','deeppink'), 
+    c('GEUVADIS', 'simulated uniform', 'simulated rnaf bias'), lty=1, cex=0.5)
+axis(side=2, at=ymax/2, labels='Coverage', tick=FALSE, outer=FALSE, mgp=c(3,3,0))
+if(strand=='+'){
+  text(x=3000, y=-(txind+1)*transcript_width, "transcription: 5' --> 3'")
+}else{
+  text(x=3000, y=-(txind+1)*transcript_width, "transcriptio: 3' <-- 5'")
+}
+```
+
+# Reproducibility
+
+```{r 'reproducibility', dev = 'CairoPNG'}
+## Reproducibility info
+# Time spent in this report
+diff(c(startTime, Sys.time()))
+Sys.time()
+options(width = 120)
+devtools::session_info()
+```
