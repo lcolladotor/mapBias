@@ -186,7 +186,7 @@ txtmp = lapply(txtmp, function(x){
     return(ret)
 })
 
-ymax = max(c(covtmp_black, covtmp_blue, covtmp_pink))
+ymax = max(c(covtmp_black, covtmp_blue, covtmp_pink)) * 1.1
 transcript_width = round(ymax/4)
 isoforms = txtmp
 ymin = -length(gene_inds)*transcript_width - transcript_width
@@ -196,7 +196,7 @@ plot(covtmp_blue, type='l', col='blue', ylab='',
     xlab='genomic position, chr6', ylim=c(ymin, ymax), yaxt='n', xaxt='n')
 lines(covtmp_pink, col='deeppink')
 lines(covtmp_black, col='black')
-axis(side=2, at=pretty(0:ymax), labels=as.character(pretty(0:ymax)))
+axis(side=2, at=pretty(0:ymax), labels=as.character(pretty(0:ymax)), las = 2)
 intron_start_ind = which(xax == 14118297)
 xax_print = xax[-c(intron_start_ind:(intron_start_ind+iwidth-500))]
 labels = xax_print[c(1, pretty(1:length(covtmp_blue))[-1])]
