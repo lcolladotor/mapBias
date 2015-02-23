@@ -157,7 +157,6 @@ ind = which(names(covrlelist) == chr)
 covtrack = covrlelist[[ind]][xax]
 
 # find the giant intron
-bigstart = which.max(runLength(covtrack))
 iwidth = 13327
 istart = 902
 covtmp_black = covtrack[-(istart:(istart + iwidth - 500 - 1))]
@@ -186,7 +185,7 @@ txtmp = lapply(txtmp, function(x){
     return(ret)
 })
 
-ymax = max(c(covtmp_black, covtmp_blue, covtmp_pink)) * 1.1
+ymax = max(c(covtmp_black, covtmp_blue, covtmp_pink)) * 1.15
 transcript_width = round(ymax/4)
 isoforms = txtmp
 ymin = -length(gene_inds)*transcript_width - transcript_width
