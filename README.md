@@ -5,7 +5,7 @@ This repository has code for reproducing a part of [polyester_code](https://gith
 
 The goal was to reproduce these figures, try another seed, and try to determine a measure that we can calculate by gene to see if there is information. Particularly, if there is more information than what we would expect by chance.
 
-Folders [NA06985](/NA06985), [NA12144](/NA12144), [NA12776](/NA12776), [NA18858](/NA18858), [NA20542](/NA20542), [NA20772](/NA20772), and [NA20815](/NA20815) are taking as available from [polyester_code](https://github.com/alyssafrazee/polyester_code). Their output is reproduced (described below) for 20 genes instead of 10. The same is true for [countmat.rda](/countmat.rda). [sequences.rda](/sequences.rda) was not used.
+Folders [NA06985](/NA06985), [NA12144](/NA12144), [NA12776](/NA12776), [NA18858](/NA18858), [NA20542](/NA20542), [NA20772](/NA20772), and [NA20815](/NA20815) are taken as available from [polyester_code](https://github.com/alyssafrazee/polyester_code). Their output is reproduced (described below) for 20 genes instead of 10. The same is true for [countmat.rda](/countmat.rda). [sequences.rda](/sequences.rda) was not used.
 
 # Step 1: select genes
 
@@ -13,7 +13,7 @@ Folders [NA06985](/NA06985), [NA12144](/NA12144), [NA12776](/NA12776), [NA18858]
 
 # Step 2: re-align Geuvadis
 
-[geuvadis](/geuvadis) has the files for re-aligning the selected 7 samples from Geuvadis. [subset_pop.Rmd](/geuvadis/subset_pop.Rmd) subsets the info to just hte 7 samples. Then [run_tophat.sh](/geuvadis/run_tophat.sh) is used for aligning the data in 4 different TopHat modes:
+[geuvadis](/geuvadis) has the files for re-aligning the selected 7 samples from Geuvadis. [subset_pop.Rmd](/geuvadis/subset_pop.Rmd) subsets the info to just the 7 samples. Then [run_tophat.sh](/geuvadis/run_tophat.sh) is used for aligning the data in 4 different TopHat modes:
 
 * G: using –G with the full annotation of hg19
 * noG: without using –G
