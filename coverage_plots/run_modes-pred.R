@@ -1,7 +1,6 @@
 library('rmarkdown')
 
-#modes <- c('G', 'noG', 'GaT', 'incG')
-modes <- c('incG')
+modes <- c('G', 'noG', 'GaT', 'incG')
 mainDir <- getwd()
 for(tophat in modes){
     startTime <- Sys.time()

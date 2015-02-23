@@ -15,7 +15,7 @@ Predict coverage
 TopHat mode: `r tophat`
 
 
-```{r 'setup'}
+```{r 'setup', dev = 'CairoPNG'}
 library('ballgown')
 library('GenomicRanges')
 library('usefulstuff')
@@ -29,7 +29,7 @@ library('plyr')
 
 Loads the coverage and splits it by gene for each sample. Then it calculates the correlation (and $R^2$) between the Geuvadis sample coverage and each of the simulated scenarios including simply drawing numbers from the negative binomial (aka, skipping alignment). For each Geuvadis gene-sample, an ARIMA model is fitted, then one more for each simulated scenario using the simulated coverage as a predictor. The coefficient for the predictor is extracted as well as its corresponding p-value. Similar numbers are calculated between replicates of the same simulation scenario.
 
-```{r 'load'}
+```{r 'load', dev = 'CairoPNG', warning = FALSE}
 ## Load coverage data
 load(file.path(tophat, 'ex_regCov.Rdata'))
 
@@ -144,7 +144,7 @@ if(file.exists(file.path(tophat, 'pred_cov.Rdata'))) {
 
 Explore which ARIMA models were selected for each gene-sample scenario.
 
-```{r 'models'}
+```{r 'models', dev = 'CairoPNG'}
 ## Types of models selected
 sort(table(pred_cov$order), decreasing = TRUE)
 table(pred_cov$ar) /12
@@ -159,7 +159,7 @@ ggplot(subset(pred_cov, set == 'd1'), aes(x = ar)) + geom_bar(stat = 'bin') + fa
 
 Percent of significant ARIMA coefficients for each of the simulated scenarios. Either overall percent, or first summarized by genes or by samples.
 
-```{r 'sig', fig.width = 12}
+```{r 'sig', fig.width = 12, dev = 'CairoPNG'}
 sig <- ddply(pred_cov, .(set, type), summarize, mean = mean(sig))
 ggplot(sig, aes(x = set, y = mean * 100, fill = type)) + geom_boxplot() + ylim(c(0, 100)) + ylab('Percent') + ggtitle('Significant coefs') + theme_bw()
 sig <- ddply(pred_cov, .(set, sample, type), summarize, mean = mean(sig))
@@ -174,7 +174,7 @@ ggplot(sig, aes(x = set, y = mean * 100, fill = type)) + geom_boxplot(outlier.sh
 Boxplots of ARIMA coefficient p-values. First overall, then by sample (20 points per boxplot: 1 per gene), then by gene (7 points per boxplot).
 
 
-```{r 'pval', fig.width = 12}
+```{r 'pval', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = set, y = pval, fill = type)) + geom_boxplot() + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = pval, fill = type)) + geom_boxplot() + facet_grid(. ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = pval, fill = type)) + geom_boxplot() + facet_wrap( ~ gene, ncol = 10) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -185,7 +185,7 @@ ggplot(pred_cov, aes(x = set, y = pval, fill = type)) + geom_boxplot() + facet_w
 
 Boxplots of ARIMA coefficients. First overall, then by sample (20 points per boxplot: 1 per gene), then by gene (7 points per boxplot).
 
-```{r 'coef', fig.width = 12}
+```{r 'coef', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = set, y = coef, fill = type)) + geom_boxplot() + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = coef, fill = type)) + geom_boxplot() + facet_grid(. ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = coef, fill = type)) + geom_boxplot() + facet_wrap( ~ gene, ncol = 10) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -196,7 +196,7 @@ ggplot(pred_cov, aes(x = set, y = coef, fill = type)) + geom_boxplot() + facet_w
 
 Relationship between p-values and coefficients for the ARIMA models.
 
-```{r 'pval-coef', fig.width = 12}
+```{r 'pval-coef', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = pval, y = coef, color = type)) + geom_point() + facet_grid(group ~ .) + geom_vline(xintercept = 0.05, colour = 'red') + theme_bw()
 ggplot(pred_cov, aes(x = pval, y = coef, color = type)) + geom_point() + facet_grid(group ~ sample) + geom_vline(xintercept = 0.05, colour = 'red') + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = pval, y = coef, color = type)) + geom_point() + facet_grid(group ~ gene) + geom_vline(xintercept = 0.05, colour = 'red') + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -207,7 +207,7 @@ ggplot(pred_cov, aes(x = pval, y = coef, color = type)) + geom_point() + facet_g
 
 Boxplots of root mean square distance where each vector has been standardized by its maximum. First overall, then by sample (20 points per boxplot: 1 per gene), then by gene (7 points per boxplot).
 
-```{r 'RMSD', fig.width = 12}
+```{r 'RMSD', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = set, y = rmsd, fill = type)) + geom_boxplot() + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = rmsd, fill = type)) + geom_boxplot() + facet_grid(. ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = rmsd, fill = type)) + geom_boxplot() + facet_wrap( ~ gene, ncol = 10) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -218,7 +218,7 @@ ggplot(pred_cov, aes(x = set, y = rmsd, fill = type)) + geom_boxplot() + facet_w
 
 Boxplots of correlation. First overall, then by sample (20 points per boxplot: 1 per gene), then by gene (7 points per boxplot).
 
-```{r 'Correlation', fig.width = 12}
+```{r 'Correlation', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = set, y = cor, fill = type)) + geom_boxplot() + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = cor, fill = type)) + geom_boxplot() + facet_grid(. ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = cor, fill = type)) + geom_boxplot() + facet_wrap( ~ gene, ncol = 10) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -228,7 +228,7 @@ ggplot(pred_cov, aes(x = set, y = cor, fill = type)) + geom_boxplot() + facet_wr
 
 Comparison between correlation and RMSD-max.
 
-```{r 'cor-rmsd', fig.width = 12}
+```{r 'cor-rmsd', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = rmsd, y = cor, color = type)) + geom_point() + facet_grid(group ~ .) + theme_bw()
 ggplot(pred_cov, aes(x = rmsd, y = cor, color = type)) + geom_point() + facet_grid(group ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = rmsd, y = cor, color = type)) + geom_point() + facet_grid(group ~ gene) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
@@ -242,7 +242,7 @@ ggplot(pred_cov, aes(x = rmsd, y = cor, color = type)) + geom_point() + facet_gr
 
 Boxplots of $R^2$ (correlation squared since its a simple linear model). First overall, then by sample (20 points per boxplot: 1 per gene), then by gene (7 points per boxplot).
 
-```{r 'R2', fig.width = 12}
+```{r 'R2', fig.width = 12, dev = 'CairoPNG'}
 ggplot(pred_cov, aes(x = set, y = R2, fill = type)) + geom_boxplot() + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))
 ggplot(pred_cov, aes(x = set, y = R2, fill = type)) + geom_boxplot() + facet_grid(. ~ sample) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8)) 
 ggplot(pred_cov, aes(x = set, y = R2, fill = type)) + geom_boxplot() + facet_wrap( ~ gene, ncol = 10) + theme_bw() + theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8))

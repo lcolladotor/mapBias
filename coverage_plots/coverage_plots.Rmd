@@ -239,15 +239,21 @@ scatterBySamp(7)
 # By reduced exons
 
 ```{r 'covExons', dev = 'CairoPNG'}
-exons <- unlist(reduce(genes))
+## Exons with 25bp padding on each side for plots
+exons <- unlist(reduce(resize(genes, width = width(genes) + 50, fix = 'center')))
 ## Check that none overlap
 max(countOverlaps(exons) - 1)
 strand(exons) <- "*"
 
+## Get exon coverage for models later without padding
+ex_regCov <- getRegionCoverage(fullCov = fullCov, 
+    regions = unlist(reduce(genes)), verbose = FALSE)
+save(ex_regCov, file = file.path(tophat, 'ex_regCov.Rdata'))
+
 ## Prep for plotting
 ex_regCov <- getRegionCoverage(fullCov = fullCov, regions = exons,
     verbose = FALSE)
-save(ex_regCov, file = file.path(tophat, 'ex_regCov.Rdata'))
+save(ex_regCov, file = file.path(tophat, 'ex_regCov_withPadding.Rdata'))
 ex_annoReg <- annotateRegions(exons, gs$fullGenome, verbose = FALSE)
 save(ex_annoReg, file = file.path(tophat, 'ex_annoReg.Rdata'))
 ex_annoNear <- data.frame(name = names(exons), distance = 0, region = NA)
