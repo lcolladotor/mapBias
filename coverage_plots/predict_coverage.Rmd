@@ -77,8 +77,10 @@ fitArima <- function(x, y = 'Geuvadis', order, d, auto = FALSE) {
         f <- auto.arima(d[, y], xreg = d[, x])
         order <- arimaorder(f)
     } else {
-        f <- arima(d[, y], xreg = d[, x], order = order)
+        f <- tryCatch(arima(d[, y], xreg = d[, x], order = order), error = function(e) { return(list(error = TRUE))})
     }
+    
+    if(!is.null(f$error)) return(list(order = NA, coef = NA, z = NA))
     
     z <- coef(f)["d[, x]"] / sqrt(f$var.coef["d[, x]", "d[, x]"])
     return(list(order = paste(order, collapse = '-'), coef = coef(f)["d[, x]"], z = z))

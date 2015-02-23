@@ -67,7 +67,7 @@ regions <- regions[match(experiment_genes, names(regions)), ]
 
 ## Load coverage
 fullCov <- fullCoverage(bams, chrs = levels(seqnames(regions)),
-    which = regions, protectWhich = 1e4, mc.cores = 7, verbose = FALSE)
+    which = regions, protectWhich = 2e5, mc.cores = 7, verbose = FALSE)
 save(fullCov, file = file.path(tophat, 'fullCov.Rdata'))
 
 ## Load genomic state info (or make it if necessary)
